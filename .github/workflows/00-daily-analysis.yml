@@ -355,6 +355,12 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
 
+          # 方式十三：QQ 机器人（通过 QQ 开放平台 Bot API）
+          QQ_APP_ID: ${{ secrets.QQ_APP_ID }}
+          QQ_CLIENT_SECRET: ${{ secrets.QQ_CLIENT_SECRET }}
+          QQ_USER_OPENID: ${{ secrets.QQ_USER_OPENID }}
+          QQ_GROUP_OPENID: ${{ secrets.QQ_GROUP_OPENID }}
+
           # 通知路由策略（留空时保持全部已配置渠道）
           NOTIFICATION_REPORT_CHANNELS: ${{ vars.NOTIFICATION_REPORT_CHANNELS || secrets.NOTIFICATION_REPORT_CHANNELS }}
           NOTIFICATION_ALERT_CHANNELS: ${{ vars.NOTIFICATION_ALERT_CHANNELS || secrets.NOTIFICATION_ALERT_CHANNELS }}
@@ -484,6 +490,7 @@ jobs:
           echo "  Discord: $([ -n "$DISCORD_WEBHOOK_URL" ] && echo '✅ 已配置' || echo '⚪ 未配置')"
           echo "  AstrBot: $([ -n "$ASTRBOT_URL" ] && echo '✅ 已配置' || echo '⚪ 未配置')"
           echo "  Slack: $(([ -n "$SLACK_WEBHOOK_URL" ] || ([ -n "$SLACK_BOT_TOKEN" ] && [ -n "$SLACK_CHANNEL_ID" ])) && echo '✅ 已配置' || echo '⚪ 未配置')"
+          echo "  QQ机器人: $( ([ -n "$QQ_APP_ID" ] && [ -n "$QQ_CLIENT_SECRET" ] && ([ -n "$QQ_USER_OPENID" ] || [ -n "$QQ_GROUP_OPENID" ])) && echo '✅ 已配置' || echo '⚪ 未配置')"
           echo "=========================================="
           echo ""
           
