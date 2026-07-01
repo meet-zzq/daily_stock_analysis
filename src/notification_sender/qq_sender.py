@@ -21,7 +21,6 @@ from __future__ import annotations
 import logging
 import re
 import time
-from datetime import datetime
 from typing import Any, Dict, Optional
 
 import requests
@@ -162,7 +161,17 @@ class QqSender:
         content: str,
         timeout_seconds: Optional[float] = None,
     ) -> bool:
-        """发送私聊（C2C）消息。"""
+        """发送私聊（C2C）消息，自动分段。"""
+        return self._send_chunked(self._send_single_c2c, token, openid, content, timeout_seconds)
+
+    def _send_single_c2c(
+        self,
+        token: str,
+        openid: str,
+        content: str,
+        timeout_seconds: Optional[float] = None,
+    ) -> bool:
+        """发送单条私聊（C2C）消息。"""
         url = f"{API_BASE}{C2C_MESSAGE_PATH.format(openid=openid)}"
         headers = self._build_headers(token)
 
@@ -223,7 +232,17 @@ class QqSender:
         content: str,
         timeout_seconds: Optional[float] = None,
     ) -> bool:
-        """发送群聊消息。"""
+        """发送群聊消息，自动分段。"""
+        return self._send_chunked(self._send_single_group, token, group_openid, content, timeout_seconds)
+
+    def _send_single_group(
+        self,
+        token: str,
+        group_openid: str,
+        content: str,
+        timeout_seconds: Optional[float] = None,
+    ) -> bool:
+        """发送单条群聊消息。"""
         url = f"{API_BASE}{GROUP_MESSAGE_PATH.format(group_openid=group_openid)}"
         headers = self._build_headers(token)
 
@@ -281,6 +300,68 @@ class QqSender:
     # 辅助方法
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _chunk_content(content: str, max_len: int = MAX_MESSAGE_LENGTH) -> list[str]:
+        """将长内容按 max_len 分段，尽量在 Markdown 标题或换行处断开。
+
+        Returns:
+            分段后的内容列表，每段不超过 max_len。
+        """
+        if len(content) <= max_len:
+            return [content]
+
+        chunks: list[str] = []
+        start = 0
+
+        while start < len(content):
+            if len(content) - start <= max_len:
+                chunks.append(content[start:])
+                break
+
+            # 尝试在 max_len 范围内找到合适的断点
+            end = start + max_len
+            # 优先找最近的 Markdown 二级/三级标题
+            split_at = content.rfind("\n## ", start, end)
+            if split_at <= start:
+                split_at = content.rfind("\n### ", start, end)
+            if split_at <= start:
+                split_at = content.rfind("\n\n", start, end)
+            if split_at <= start:
+                split_at = content.rfind("\n", start, end)
+            if split_at <= start:
+                # 实在找不到，硬切
+                split_at = end
+
+            chunks.append(content[start:split_at].strip())
+            start = split_at
+
+        return chunks
+
+    def _send_chunked(
+        self,
+        send_fn,
+        token: str,
+        target: str,
+        content: str,
+        timeout_seconds: Optional[float],
+    ) -> bool:
+        """将长内容分段发送，每段独立发送。
+
+        Args:
+            send_fn: 单条发送函数（_send_single_c2c 或 _send_single_group）
+        """
+        chunks = self._chunk_content(content)
+        all_ok = True
+        for i, chunk in enumerate(chunks):
+            if not chunk:
+                continue
+            if i > 0 and len(chunks) > 1:
+                logger.info("发送分段 %d/%d (%d 字符)", i + 1, len(chunks), len(chunk))
+            ok = send_fn(token, target, chunk, timeout_seconds)
+            if not ok:
+                all_ok = False
+        return all_ok
+
     def _is_configured(self) -> bool:
         """检查配置是否完整。"""
         if not self._app_id or not self._client_secret:
@@ -308,13 +389,11 @@ class QqSender:
         Returns:
             (body_dict, is_markdown)
         """
-        max_len = MAX_MESSAGE_LENGTH
-        truncated = content[:max_len]
-
+        # 内容已在外层（_send_chunked）分段，此处无需再次截断
         if self._has_markdown(content):
             return (
                 {
-                    "markdown": {"content": truncated},
+                    "markdown": {"content": content},
                     "msg_type": MSG_TYPE_MARKDOWN,
                 },
                 True,
@@ -322,7 +401,7 @@ class QqSender:
         else:
             return (
                 {
-                    "content": truncated,
+                    "content": content,
                     "msg_type": MSG_TYPE_TEXT,
                 },
                 False,

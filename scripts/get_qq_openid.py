@@ -22,9 +22,19 @@ logging.basicConfig(
 )
 logger = logging.getLogger("qq_openid_finder")
 
-# 配置——从 .env 读取或直接填
-QQ_APP_ID = "1904912741"
-QQ_CLIENT_SECRET = "eaWTRPONNOPRUXbfkqw3AIQZis2DOamz"
+# 配置——从环境变量读取（禁止硬编码）
+import os
+
+QQ_APP_ID = os.environ.get("QQ_APP_ID", "")
+QQ_CLIENT_SECRET = os.environ.get("QQ_CLIENT_SECRET", "")
+
+if not QQ_APP_ID or not QQ_CLIENT_SECRET:
+    logger.error(
+        "请在运行前设置 QQ_APP_ID 和 QQ_CLIENT_SECRET 环境变量，\n"
+        "或从 .env 文件加载：\n"
+        "  export $(grep -v '^#' .env | xargs) && python scripts/get_qq_openid.py"
+    )
+    sys.exit(1)
 
 TOKEN_URL = "https://bots.qq.com/app/getAppAccessToken"
 API_BASE = "https://api.sgroup.qq.com"

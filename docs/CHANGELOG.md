@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - [修复] A 股个股分析遇到空 `belong_boards` 占位时会继续补查所属板块，关联板块模块在已有板块时稳定展示；对应涨跌幅缺失时只显示板块，不再输出占位涨跌幅。
 - [修复] 大盘复盘在 LLM 标题漂移或正文缺少板块段时，会从结构化 `sectors` 兜底渲染板块表，避免 Web 与推送报告偶发缺少板块主线。
 - feat: 新增 QQ 机器人通知渠道，支持通过 QQ 开放平台 Bot API（AppID + AppSecret）推送股票分析报告到私聊和群聊
+- [新功能] 新增 QQ 机器人通知渠道，支持通过 QQ 开放平台 Bot API（AppID + AppSecret）推送股票分析报告到私聊和群聊
 
 <!-- 新条目格式：- [类型] 描述（类型取值：新功能/改进/修复/文档/测试/chore）-->
 <!-- 每条独立一行追加到本段末尾，无需分类标题，合并时冲突最小 -->
