@@ -1833,6 +1833,13 @@ class Config:
             slack_channel_id=os.getenv('SLACK_CHANNEL_ID'),
             astrbot_url=os.getenv('ASTRBOT_URL'),
             astrbot_token=os.getenv('ASTRBOT_TOKEN'),
+
+            # QQ 机器人通知
+            qq_app_id=os.getenv('QQ_APP_ID'),
+            qq_client_secret=os.getenv('QQ_CLIENT_SECRET'),
+            qq_user_openid=os.getenv('QQ_USER_OPENID'),
+            qq_group_openid=os.getenv('QQ_GROUP_OPENID'),
+
             notification_report_channels=parse_notification_route_channels(
                 os.getenv('NOTIFICATION_REPORT_CHANNELS')
             ),
