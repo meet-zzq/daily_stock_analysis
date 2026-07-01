@@ -924,6 +924,13 @@ class Config:
     astrbot_token: Optional[str] = None
     astrbot_url: Optional[str] = None
 
+    # QQ 机器人通知配置（通过 QQ 开放平台 Bot API）
+    # 获取: https://q.qq.com/ 创建应用 -> AppID + AppSecret
+    qq_app_id: Optional[str] = None  # QQ Bot AppID
+    qq_client_secret: Optional[str] = None  # QQ Bot AppSecret
+    qq_user_openid: Optional[str] = None  # 私聊目标用户 openid
+    qq_group_openid: Optional[str] = None  # 群聊目标群 group_openid
+
     # 通知路由策略（Issue #1200 P3）：留空表示该类型使用全部已配置渠道
     notification_report_channels: List[str] = field(default_factory=list)
     notification_alert_channels: List[str] = field(default_factory=list)

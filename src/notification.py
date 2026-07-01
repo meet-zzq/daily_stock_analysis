@@ -66,6 +66,7 @@ from src.notification_sender import (
     NtfySender,
     PushoverSender,
     PushplusSender,
+    QqSender,
     Serverchan3Sender,
     SlackSender,
     TelegramSender,
@@ -116,6 +117,7 @@ class NotificationChannel(Enum):
     DISCORD = "discord"    # Discord 机器人 (Bot)
     SLACK = "slack"        # Slack
     ASTRBOT = "astrbot"
+    QQ = "qq"              # QQ 机器人
     UNKNOWN = "unknown"    # 未知
 
 
@@ -166,6 +168,7 @@ class ChannelDetector:
             NotificationChannel.DISCORD: "Discord机器人",
             NotificationChannel.SLACK: "Slack",
             NotificationChannel.ASTRBOT: "ASTRBOT机器人",
+            NotificationChannel.QQ: "QQ机器人",
             NotificationChannel.UNKNOWN: "未知渠道",
         }
         return names.get(channel, "未知渠道")
@@ -181,6 +184,7 @@ class NotificationService(
     NtfySender,
     PushoverSender,
     PushplusSender,
+    QqSender,
     Serverchan3Sender,
     SlackSender,
     TelegramSender,
@@ -238,6 +242,7 @@ class NotificationService(
         NtfySender.__init__(self, config)
         PushoverSender.__init__(self, config)
         PushplusSender.__init__(self, config)
+        QqSender.__init__(self, config)
         Serverchan3Sender.__init__(self, config)
         SlackSender.__init__(self, config)
         TelegramSender.__init__(self, config)
@@ -451,6 +456,16 @@ class NotificationService(
 
         if getattr(config, "astrbot_url", None):
             channels.append(NotificationChannel.ASTRBOT)
+
+        if (
+            getattr(config, "qq_app_id", None)
+            and getattr(config, "qq_client_secret", None)
+            and (
+                getattr(config, "qq_user_openid", None)
+                or getattr(config, "qq_group_openid", None)
+            )
+        ):
+            channels.append(NotificationChannel.QQ)
 
         return channels
 
@@ -2431,6 +2446,8 @@ class NotificationService(
             return self.send_to_slack(content)
         if channel == NotificationChannel.ASTRBOT:
             return self.send_to_astrbot(content)
+        if channel == NotificationChannel.QQ:
+            return self.send_to_qq(content)
         logger.warning(f"不支持的通知渠道: {channel}")
         return False
 
